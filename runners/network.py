@@ -95,7 +95,7 @@ class HTTPErrorTest:
         for reporter in reportersToCall:
             self.config["REPORTERS"][reporter]["siteName"] = siteName
             self.config["REPORTERS"][reporter]["message"] = message
-            config = self.config["REPORTERS"]["MAIL"]
+            config = self.config["REPORTERS"][reporter]
             self.reporters[reporter].reportStatus(result, config)
 
     def makeRequest(self, url):
