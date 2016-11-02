@@ -17,20 +17,49 @@ class PingTest:
         self.logger  = logger
 
     def test(self):
-        self.logger.runningTest("PING")
-        process = subprocess.Popen(
-        "ping -c 4 ownweb.fr | tail -1 | awk '{print $4}' | cut -d '/' -f 2",
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE,
-        shell = True
-        )
+        strings = self.config["urls"].split(';')
 
-        outs, err = process.communicate()
+        for index, string in enumerate(strings):
+            try:
+                lastNotify = int(string.split('@')[1])
+            except IndexError:
+                lastNotify = 0
+            url = self.checkUrl(string.split('@')[0])
 
-        if(err):
-            self.logger.testResult("PING", False, err)
+            if url:
+                self.logger.runningTest("PING")
+                process = subprocess.Popen(
+                "ping -c 4 -W 1 %s | tail -1 | awk '{print $4}' | cut -d '/' -f 2" % url,
+                stdout = subprocess.PIPE,
+                stderr = subprocess.PIPE,
+                shell = True
+                )
+
+                outs, err = process.communicate()
+
+                if(err):
+                    self.logger.testResult("PING", False, err)
+                else:
+                    try:
+                        ping = float(outs)
+                    except ValueError as error:
+                        self.logger.testResult("PING", False, "%s %s \t(%s)" % (error, outs, url))
+                    else:
+                        if ping > float(self.config["maxPing"]):
+                            self.logger.testResult("PING", False, "%s > %s\t(%s)" % (str(ping), self.config["maxPing"], url))
+                        else:
+                            self.logger.testResult("PING", True, "%s OK\t(%s)" % (str(ping), url))
+            else:
+                self.logger.testResult("PING", False, "Not valid URL")
+
+    def checkUrl(self, url):
+        regex = r"(https?://)?([a-z-\.0-9]*/?[a-z-\.0-9]*\.[a-z]+)/?(:[0-9]+)?"
+        m = re.match(regex, url)
+
+        if m:
+            return m.group(2)
         else:
-            self.logger.testResult("PING", True, float(outs))
+            return False
 
 class HTTPErrorTest:
     """
