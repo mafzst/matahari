@@ -1,15 +1,15 @@
-from runners import *
+from tests import *
 from reporters import *
 
-def getRunners():
-    runners = {}
-    runners["PID"] = pid.PidTest
-    runners["LOADAVG"] = hardware.LoadavgTest
-    runners["PMEMORY"] = hardware.MemoryConsumptionTest
-    runners["PING"] = network.PingTest
-    runners["HTTP"] = network.HTTPErrorTest
+def getTests():
+    tests = {}
+    tests["PID"] = pid.PidTest
+    tests["LOADAVG"] = hardware.LoadavgTest
+    tests["PMEMORY"] = hardware.MemoryConsumptionTest
+    tests["PING"] = network.PingTest
+    tests["HTTP"] = network.HTTPErrorTest
 
-    return runners
+    return tests
 
 def getReporters():
     reporters = {}

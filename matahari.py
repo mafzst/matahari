@@ -1,11 +1,11 @@
 from configobj import ConfigObj
 import time, sys
 from framework import Daemon, Logger, initReporters
-from autoload import getRunners, getReporters
+from autoload import getReporters, getTests
 
 config = ConfigObj('matahari.conf')
 logger = Logger(config["LOGGING"])
-runners = getRunners()
+tests = getTests()
 reporters = initReporters(getReporters(), config["REPORTERS"])
 
 def runtime():
@@ -21,8 +21,8 @@ def runtime():
                 for test in config["RUNNERS"][process].sections:
                     testConfig = config["RUNNERS"][process][test]
 
-                    runner = runners[test](testConfig, reporters, logger)
-                    newConfig = runner.test()
+                    t = tests[test](testConfig, reporters, logger)
+                    newConfig = t.test()
                     if newConfig:
                         config["RUNNERS"][process][test] = newConfig
             logger.info('main', "Tests finished: Going to sleep for 30s before next test")
