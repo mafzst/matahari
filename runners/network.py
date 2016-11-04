@@ -77,9 +77,6 @@ class HTTPErrorTest:
         self.reporters = reporters
         self.logger  = logger
 
-        logging.getLogger('urllib3').setLevel(logging.WARNING)
-
-
     def test(self):
         strings = self.config["urls"].split(';')
 
