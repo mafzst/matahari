@@ -31,6 +31,7 @@ def runtime():
         logger.logInterrupt('main', "Shutting down, bye :)")
     except:
         logger.logInterrupt('main', "Shutting down with ERRROR!")
+        raise
     finally:
         config.write()
 
