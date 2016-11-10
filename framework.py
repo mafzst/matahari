@@ -88,8 +88,8 @@ class Daemon:
     	sys.stdout.flush()
     	sys.stderr.flush()
     	si = open(os.devnull, 'r')
-    	so = open(os.devnull, 'a+')
-    	se = open(os.devnull, 'a+')
+    	so = open('/var/log/matahari.log', 'a+')
+    	se = open('/var/log/matahari.log', 'a+')
 
     	os.dup2(si.fileno(), sys.stdin.fileno())
     	os.dup2(so.fileno(), sys.stdout.fileno())
