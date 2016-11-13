@@ -12,7 +12,7 @@ class MailReporter:
         """
         self.config = config
 
-    def reportStatus(self, passed, config):
+    def reportStatus(self, passed, config, extraData):
         """
         Report a component status to API
          - `passed`: Is test passed
@@ -20,10 +20,10 @@ class MailReporter:
         """
         if passed == False:
             message = """PING DOWN Report\nLe site %s à retourné une erreur lors du dernier test (%s),\ntu devrais y jetter un oeil rapidement ;)\nMatahari
-            """ % (config['siteName'], config['message'])
+            """ % (extraData['siteName'], extraData['message'])
 
             msg = MIMEText(message)
-            msg['Subject'] = '%s DOWN' % config['siteName']
+            msg['Subject'] = '%s DOWN' % extraData['siteName']
             msg['From'] = self.config['fromAddress']
             msg['To'] = self.config['toAddress']
 
