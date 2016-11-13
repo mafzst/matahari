@@ -1,5 +1,108 @@
-import logging
-import sys, os, time, atexit, signal
+import logging, sys, os, time, atexit, signal, queue, autoload
+
+class Core:
+    @staticmethod
+    def executeRunner(config, reporters):
+        runner = Runner(config, reporters)
+        runner.load()
+        runner.run()
+
+    @staticmethod
+    def getTestsInstance(name):
+        return autoload.getTests()[name]
+
+class Runner:
+    """
+
+    """
+
+    def __init__(self, config, reporters):
+        self.statuses = {
+         0: 'IDLE',
+         1: 'INITIALIZING',
+        10: 'INITIALIZING_OK',
+        11: 'INITIALIZING_ERR',
+         2: 'SWITCHING',
+        20: 'SWITCHING_OK',
+        21: 'SWITCHING_ERR',
+         3: 'TESTING',
+        30: 'TESTING_OK',
+        31: 'TESTING_ERR'
+        }
+        self.config = config
+        self.logger = config["logger"]
+        self.tag = "runner %s" % config["name"]
+        self.reporters = reporters
+
+        self.setStatus(0)
+
+    def load(self):
+        self.logger.info(self.tag, "Initializing")
+        self.setStatus(1)
+
+        tests = self.config.sections
+        testsNb = len(tests)
+        self.logger.debug(self.tag, "%d tests found" % testsNb)
+
+        self.testQueue = queue.Queue(testsNb)
+        for test in tests:
+            self.logger.debug(self.tag, "Enqueuing %s" % test)
+            try:
+                self.testQueue.put(Core.getTestsInstance(test), True, 1)
+            except:
+                self.logger.critical(self.tag, "Enqueuing %s failed. Stopping initialization" % test)
+                self.setStatus(11)
+                raise
+        self.logger.info(self.tag, "Initialized successfully")
+        self.setStatus(10)
+
+    def run(self):
+        self.logger.info(self.tag, "Starting %d tests" % self.testQueue.qsize())
+        #TODO Parse conf to inject global in specific
+        self._next()
+        self.setStatus(30)
+
+    def _next(self):
+        self.setStatus(2)
+        if not self.testQueue.empty():
+            test = self.testQueue.get(True, 1)
+            container = TestContainer(test, self.config[test.getName()], self.logger, self.reporters)
+            self.setStatus(3)
+            container.start()
+            self._next()
+
+    #######
+    #UTILS#
+    #######
+    def setStatus(self, status):
+        self.logger.debug(self.tag, "Switchig to status %d: %s" % (status, self.statuses[status]))
+        self.status =  status
+
+class TestContainer:
+    def __init__(self, test, config, loggerInterface, reporters):
+        self.test = test
+        self.config = config
+        self.loggerInterface = loggerInterface
+        self.reporters = reporters
+
+    def start(self):
+        self.running = True
+        self.test.test(self)
+
+        while self.running:
+            pass
+    def finish(self):
+        self.running = False
+
+    def report(self, result, extraData = {}):
+        try:
+            reportersToCall = self.config["REPORTERS"].sections
+        except KeyError:
+            #No reporters
+            pass
+        else:
+            for reporter in reportersToCall:
+                self.reporters[reporter].reportStatus(result, self.config["REPORTERS"][reporter], extraData)
 
 class Logger:
     """
@@ -19,8 +122,20 @@ class Logger:
 
         self.logger.addHandler(self.consoleHandler)
 
+    def critical(self, tag, message):
+        self.logger.critical("\033[1;5;41m[%s]: \t %s\033[0m" % (tag, message))
+
+    def error(self, tag, message):
+        self.logger.error("\033[31m[%s]: \t %s\033[0m" % (tag, message))
+
+    def warning(self, tag, message):
+        self.logger.warning("\033[33m[%s]: \t %s\033[0m" % (tag, message))
+
     def info(self, tag, message):
         self.logger.info("\033[34m[%s]: \t %s\033[0m" % (tag, message))
+
+    def debug(self, tag, message):
+        self.logger.debug("[%s]: \t %s" % (tag, message))
 
     def logInterrupt(self, tag, message):
         self.logger.info("\b\b\033[34m[%s]: \t %s\033[0m" % (tag, message))
