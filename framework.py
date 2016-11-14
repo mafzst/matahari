@@ -11,7 +11,7 @@ class Logger:
          - `config`: Logger configuration
             - `consoleLevel`: Log level for console logging (default info)
         """
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger("matahari")
         self.logger.setLevel(logging.DEBUG)
 
         self.consoleHandler = logging.StreamHandler()
