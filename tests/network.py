@@ -118,7 +118,7 @@ class HTTPErrorTest:
                 reason = response.reason
                 cleanUrl = response.url
             except requests.exceptions.ConnectionError as error:
-                code, message = error.args
+                message = error.args
                 status = 410
                 reason = message
                 cleanUrl = url
