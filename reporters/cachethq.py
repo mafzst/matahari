@@ -36,7 +36,7 @@ class ComponentReporter:
         """
         self.conn.close()
 
-    def reportStatus(self, passed, config):
+    def reportStatus(self, passed, config, extraData):
         """
         Report a component status to API
          - `passed`: Is test passed
@@ -89,7 +89,7 @@ class MetricReporter:
         """
         self.conn.close()
 
-    def reportStatus(self, value, config):
+    def reportStatus(self, value, config, extraData):
         """
         Report a component status to API
          - `passed`: Is test passed
