@@ -1,11 +1,10 @@
 from configobj import ConfigObj
 import time, sys
-from framework import Daemon, Logger, initReporters
-from autoload import getRunners, getReporters
+from framework import Daemon, Logger, Core, initReporters
+from autoload import getReporters
 
 config = ConfigObj('matahari.conf')
 logger = Logger(config["LOGGING"])
-runners = getRunners()
 reporters = initReporters(getReporters(), config["REPORTERS"])
 
 def runtime():
@@ -14,17 +13,10 @@ def runtime():
         while True:
             pass
             logger.info('main', "Starting tests")
-            for process in config["RUNNERS"].sections:
-                processName = config["RUNNERS"][process]["name"]
-                logger.header(processName)
-
-                for test in config["RUNNERS"][process].sections:
-                    testConfig = config["RUNNERS"][process][test]
-
-                    runner = runners[test](testConfig, reporters, logger)
-                    newConfig = runner.test()
-                    if newConfig:
-                        config["RUNNERS"][process][test] = newConfig
+            for runner in config["RUNNERS"].sections:
+                runnerConfig = config["RUNNERS"][runner]
+                runnerConfig["logger"] = logger
+                Core.executeRunner(runnerConfig, reporters)
             logger.info('main', "Tests finished: Going to sleep for 30s before next test")
             time.sleep(30)
     except KeyboardInterrupt:
