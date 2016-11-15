@@ -39,7 +39,7 @@ class PingTest:
                         container.loggerInterface.testResult("PING", False, "%s %s \t(%s)" % (error, outs, url))
                     else:
                         if ping > float(container.config["maxPing"]):
-                            container.loggerInterface.testResult("PING", False, "%s > %s\t(%s)" % (str(ping), self.config["maxPing"], url))
+                            container.loggerInterface.testResult("PING", False, "%s > %s\t(%s)" % (str(ping), container.config["maxPing"], url))
                         else:
                             container.loggerInterface.testResult("PING", True, "%s OK\t(%s)" % (str(ping), url))
             else:
